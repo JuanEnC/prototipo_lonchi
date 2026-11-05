@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lonchi</title>
+<style>
+  :root {
+    --navy: #14274e;
+    --navy-dark: #0d1b38;
+    --blue: #2f5fd0;
+    --sky: #eaf0fb;
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #1c2540;
+    --muted: #7a859e;
+    --green: #1fa971;
+    --red: #d64545;
+    --orange: #e98a15;
+    --accent: #ffb703;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #d9deea;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+  }
+  .phone {
+    position: relative;
+    width: 100%; max-width: 400px;
+    height: 100vh; max-height: 780px;
+    background: var(--bg);
+    border-radius: 32px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(13, 27, 56, 0.25);
+  }
+  @media (max-width: 420px) { .phone { border-radius: 0; max-height: none; } }
+
+  .screen { position: absolute; inset: 0; display: flex; flex-direction: column; overflow-y: auto; }
+  .hidden { display: none !important; }
+  .fade-in { animation: fadeIn 0.4s ease both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ---------- LOGIN ---------- */
+  #login-screen {
+    background: linear-gradient(170deg, var(--navy) 0%, var(--navy-dark) 100%);
+    justify-content: center; padding: 32px 28px; color: #fff;
+  }
+  .logo { text-align: center; margin-bottom: 36px; }
+  .logo-icon {
+    width: 84px; height: 84px; margin: 0 auto 14px;
+    background: var(--accent); border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px; box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+  }
+  .logo h1 { font-size: 2.2rem; letter-spacing: 1px; }
+  .logo p { color: #b8c4e4; font-size: 0.9rem; margin-top: 4px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 0.8rem; color: #b8c4e4; margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 14px 16px; border: 2px solid transparent;
+    border-radius: 14px; font-size: 1rem; background: #fff; color: var(--text);
+    outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .btn-primary {
+    width: 100%; padding: 15px; border: none; border-radius: 14px;
+    background: var(--accent); color: var(--navy-dark);
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: transform 0.1s, filter 0.2s;
+  }
+  .btn-primary:hover { filter: brightness(1.05); }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-navy { background: var(--navy); color: #fff; }
+  .hint { text-align: center; font-size: 0.75rem; color: #8fa0cc; margin-top: 18px; }
+
+  /* ---------- HEADER ---------- */
+  .header {
+    background: var(--navy); color: #fff; padding: 22px 20px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    border-radius: 0 0 24px 24px; flex-shrink: 0;
+  }
+  .header h2 { font-size: 1.15rem; flex: 1; text-align: center; }
+  .icon-btn {
+    background: rgba(255,255,255,0.14); border: none; color: #fff;
+    width: 42px; height: 42px; border-radius: 14px; font-size: 1.2rem;
+    cursor: pointer; position: relative; flex-shrink: 0;
+  }
+  .icon-btn:active { transform: scale(0.94); }
+  .content { padding: 22px 20px 30px; }
+  .section-title {
+    font-size: 0.82rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* Indicador "En vivo" */
+  .live { display: inline-flex; align-items: center; gap: 6px; color: var(--green); font-weight: 700; font-size: 0.75rem; text-transform: none; letter-spacing: 0; }
+  .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(31,169,113,.6); } 70% { box-shadow: 0 0 0 8px rgba(31,169,113,0); } 100% { box-shadow: 0 0 0 0 rgba(31,169,113,0); } }
+
+  /* ---------- HOME ---------- */
+  .biz-card {
+    display: flex; align-items: center; gap: 14px; background: var(--card);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+    box-shadow: 0 4px 14px rgba(20,39,78,0.07); cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .biz-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(20,39,78,0.12); }
+  .biz-card:active { transform: scale(0.98); }
+  .biz-icon, .product-emoji {
+    border-radius: 16px; background: var(--sky);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .biz-icon { width: 58px; height: 58px; font-size: 30px; }
+  .biz-info { flex: 1; }
+  .biz-info h3 { font-size: 1rem; margin-bottom: 4px; }
+  .biz-info p { font-size: 0.8rem; color: var(--muted); }
+  .status {
+    display: inline-block; margin-top: 6px; font-size: 0.72rem; font-weight: 700;
+    color: var(--green); background: #e3f6ee; padding: 3px 10px; border-radius: 20px;
+  }
+  .chevron { color: var(--muted); font-size: 1.3rem; }
+
+  /* ---------- MENÚ ---------- */
+  .product {
+    display: flex; align-items: center; gap: 14px; background: var(--card);
+    border-radius: var(--radius); padding: 14px; margin-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(20,39,78,0.07);
+  }
+  .product.soldout { opacity: 0.75; }
+  .product-emoji { width: 54px; height: 54px; border-radius: 14px; font-size: 28px; }
+  .product-info { flex: 1; }
+  .product-info h4 { font-size: 0.95rem; margin-bottom: 3px; }
+  .price { color: var(--blue); font-weight: 700; font-size: 0.95rem; }
+  .stock { display: inline-block; margin-top: 4px; font-size: 0.72rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+  .stock.ok  { color: var(--green);  background: #e3f6ee; }
+  .stock.low { color: var(--orange); background: #fff1dc; }
+  .stock.out { color: var(--red);    background: #fde6e6; }
+  .btn-add {
+    border: none; background: var(--blue); color: #fff; font-weight: 600;
+    font-size: 0.8rem; padding: 10px 14px; border-radius: 12px; cursor: pointer;
+    transition: background 0.25s, transform 0.1s; white-space: nowrap;
+  }
+  .btn-add:active { transform: scale(0.94); }
+  .btn-add.added { background: var(--green); }
+  .btn-add:disabled { background: #c9cfdd; color: #6b7590; cursor: not-allowed; transform: none; }
+
+  .badge {
+    position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px;
+    border-radius: 10px; background: var(--accent); color: var(--navy-dark);
+    font-size: 0.72rem; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  }
+  .badge.bump { animation: bump 0.3s ease; }
+  @keyframes bump { 50% { transform: scale(1.4); } }
+
+  /* ---------- CARRITO / CHECKOUT ---------- */
+  .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(20,39,78,0.07); }
+  .cart-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eef1f7; }
+  .cart-row:last-child { border-bottom: none; }
+  .cart-row .emoji { font-size: 26px; }
+  .cart-row .info { flex: 1; }
+  .cart-row .info strong { display: block; font-size: 0.9rem; }
+  .cart-row .info span { font-size: 0.8rem; color: var(--muted); }
+  .qty { display: flex; align-items: center; gap: 8px; }
+  .qty button {
+    width: 28px; height: 28px; border: none; border-radius: 9px; background: var(--sky);
+    color: var(--navy); font-weight: 800; font-size: 1rem; cursor: pointer;
+  }
+  .qty button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .qty b { min-width: 16px; text-align: center; font-size: 0.9rem; }
+  .empty { text-align: center; padding: 30px 10px; color: var(--muted); }
+  .empty .big { font-size: 2.6rem; margin-bottom: 8px; }
+
+  select {
+    width: 100%; padding: 13px 14px; border: 2px solid var(--sky); border-radius: 12px;
+    font-size: 0.95rem; background: #fff; color: var(--text); outline: none;
+  }
+  select:focus { border-color: var(--blue); }
+  .label { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; display: block; }
+
+  .pay-option {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 8px;
+    border: 2px solid var(--sky); border-radius: 14px; cursor: pointer; transition: border-color .2s, background .2s;
+  }
+  .pay-option:last-child { margin-bottom: 0; }
+  .pay-option.selected { border-color: var(--blue); background: #f2f6ff; }
+  .pay-option .ic { font-size: 22px; }
+  .pay-option .tx { flex: 1; font-size: 0.9rem; font-weight: 600; }
+  .pay-option .tx small { display: block; font-weight: 400; color: var(--muted); font-size: 0.75rem; }
+  .pay-option .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c3cbe0; }
+  .pay-option.selected .dot { border: 5px solid var(--blue); }
+
+  .summary { display: flex; justify-content: space-between; font-size: 1.05rem; font-weight: 800; color: var(--navy); }
+  .checkout-footer {
+    position: sticky; bottom: 0; background: linear-gradient(to top, var(--bg) 70%, transparent);
+    padding: 14px 20px 22px; margin-top: auto;
+  }
+
+  /* ---------- ÉXITO ---------- */
+  #success-screen { align-items: center; justify-content: center; text-align: center; padding: 30px 26px; background: #fff; }
+  .check {
+    width: 92px; height: 92px; border-radius: 50%; background: #e3f6ee; color: var(--green);
+    font-size: 3rem; display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+    animation: pop 0.5s ease both;
+  }
+  @keyframes pop { 0% { transform: scale(0.3); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+  #success-screen h2 { margin-bottom: 8px; color: var(--navy); }
+  #success-screen p { color: var(--muted); font-size: 0.92rem; margin-bottom: 18px; }
+  .order-box { width: 100%; background: var(--sky); border-radius: 16px; padding: 14px 16px; margin-bottom: 22px; text-align: left; font-size: 0.88rem; }
+  .order-box div { display: flex; justify-content: space-between; padding: 4px 0; }
+  .order-box span { color: var(--muted); }
+
+  /* ---------- OVERLAY PROCESANDO ---------- */
+  .overlay {
+    position: absolute; inset: 0; background: rgba(13,27,56,0.7); z-index: 40;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #fff; font-weight: 600;
+  }
+  .spinner { width: 46px; height: 46px; border: 5px solid rgba(255,255,255,0.25); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- TOAST ---------- */
+  .toast {
+    position: absolute; left: 50%; bottom: 28px; transform: translate(-50%, 30px);
+    background: var(--navy-dark); color: #fff; padding: 12px 20px; border-radius: 30px;
+    font-size: 0.83rem; box-shadow: 0 8px 20px rgba(0,0,0,0.25); opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s; z-index: 50; width: max-content; max-width: 90%; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- LOGIN -->
+  <section id="login-screen" class="screen">
+    <div class="logo">
+      <div class="logo-icon">🥪</div>
+      <h1>Lonchi</h1>
+      <p>Fila virtual y pedidos para tu cafetería</p>
+    </div>
+    <div class="field">
+      <label for="email">Correo institucional</label>
+      <input type="email" id="email" value="alumno@ucol.mx" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" value="12345">
+    </div>
+    <button class="btn-primary" id="btn-login">Iniciar Sesión</button>
+    <p class="hint">Cuenta de prueba precargada</p>
+  </section>
+
+  <!-- HOME -->
+  <section id="home-screen" class="screen hidden">
+    <div class="header">
+      <div>
+        <small style="color:#b8c4e4;font-size:.8rem;">Bienvenido</small>
+        <h2 style="text-align:left;font-size:1.3rem;">Hola, Alumno 👋</h2>
+      </div>
+      <button class="icon-btn" id="btn-logout" title="Cerrar sesión">⎋</button>
+    </div>
+    <div class="content">
+      <p class="section-title">Negocios disponibles</p>
+      <div id="business-list"></div>
+    </div>
+  </section>
+
+  <!-- MENÚ -->
+  <section id="menu-screen" class="screen hidden">
+    <div class="header">
+      <button class="icon-btn" id="btn-back" title="Volver">←</button>
+      <h2 id="menu-title">Menú</h2>
+      <button class="icon-btn" id="btn-cart" title="Carrito">🛒<span class="badge" id="cart-count">0</span></button>
+    </div>
+    <div class="content">
+      <p class="section-title"><span>Productos</span><span class="live"><i></i>Inventario en vivo</span></p>
+      <div id="product-list"></div>
+    </div>
+  </section>
+
+  <!-- CARRITO / DETALLES DE ENTREGA / PAGO -->
+  <section id="cart-screen" class="screen hidden">
+    <div class="header">
+      <button class="icon-btn" id="btn-cart-back" title="Volver al menú">←</button>
+      <h2>Tu pedido</h2>
+      <span style="width:42px"></span>
+    </div>
+    <div class="content" id="cart-content"></div>
+    <div class="checkout-footer" id="checkout-footer">
+      <button class="btn-primary btn-navy" id="btn-pay">Pagar en línea</button>
+    </div>
+  </section>
+
+  <!-- ÉXITO -->
+  <section id="success-screen" class="screen hidden">
+    <div class="check">✓</div>
+    <h2>¡Pago exitoso!</h2>
+    <p id="success-msg"></p>
+    <div class="order-box" id="order-box"></div>
+    <button class="btn-primary btn-navy" id="btn-done">Volver al inicio</button>
+  </section>
+
+  <!-- PROCESANDO -->
+  <div class="overlay hidden" id="processing">
+    <div class="spinner"></div>
+    <div>Procesando...</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  // ---------- Datos ----------
+  // stock = unidades disponibles en cocina (inventario "en vivo")
+  const businesses = [
+    { id: 'central', name: 'Cafetería Central FIE', desc: 'Comida casera y antojitos', icon: '🍽️', status: 'Abierto',
+      products: [
+        { id: 'torta',   name: 'Torta de Lomo',  price: 45, emoji: '🥖', stock: 3 },
+        { id: 'sandwich',name: 'Sándwich',       price: 35, emoji: '🥪', stock: 6 },
+        { id: 'refresco',name: 'Refresco',       price: 20, emoji: '🥤', stock: 9 },
+        { id: 'cafe',    name: 'Café americano', price: 25, emoji: '☕', stock: 0 }   // agotado de inicio
+      ] },
+    { id: 'snacks', name: 'Snacks y Jugos', desc: 'Botanas, frutas y bebidas frías', icon: '🧃', status: 'Abierto',
+      products: [
+        { id: 'jugo',   name: 'Jugo de naranja', price: 28, emoji: '🍊', stock: 4 },
+        { id: 'fruta',  name: 'Fruta con chile', price: 30, emoji: '🍉', stock: 7 },
+        { id: 'papas',  name: 'Papas',           price: 18, emoji: '🍟', stock: 2 }
+      ] },
+    { id: 'postres', name: 'Dulce Pausa', desc: 'Postres y café de especialidad', icon: '🧁', status: 'Abierto',
+      products: [
+        { id: 'galleta', name: 'Galleta de avena', price: 15, emoji: '🍪', stock: 8 },
+        { id: 'pay',     name: 'Pay de limón',     price: 32, emoji: '🥧', stock: 3 },
+        { id: 'latte',   name: 'Latte frío',       price: 40, emoji: '🧋', stock: 5 }
+      ] }
+  ];
+
+  const pickupTimes = [
+    '10:30 AM - Fin de clase',
+    '11:30 AM - Receso',
+    '12:30 PM - Fin de clase',
+    '1:30 PM - Hora de comida',
+    '3:00 PM - Fin de clase'
+  ];
+
+  const payMethods = [
+    { id: 'card',  icon: '💳', name: 'Tarjeta de crédito/débito', sub: 'Visa, Mastercard' },
+    { id: 'spei',  icon: '🏦', name: 'Transferencia SPEI',        sub: 'Pago inmediato' },
+    { id: 'wallet',icon: '📱', name: 'Saldo Lonchi',              sub: 'Monedero estudiantil' }
+  ];
+
+  // ---------- Estado ----------
+  let cart = {};              // { productId: cantidad }
+  let currentBiz = null;
+  let selectedTime = pickupTimes[0];
+  let selectedPay = 'card';
+  let orderNumber = 102;
+  let liveTimer = null;
+
+  const $ = id => document.getElementById(id);
+  const screens = { login: $('login-screen'), home: $('home-screen'), menu: $('menu-screen'), cart: $('cart-screen'), success: $('success-screen') };
+  let activeScreen = 'login';
+
+  const findProduct = id => { for (const b of businesses) { const p = b.products.find(x => x.id === id); if (p) return p; } };
+  const inCart = id => cart[id] || 0;
+  const available = p => p.stock - inCart(p.id);              // inventario restante para este alumno
+  const cartCount = () => Object.values(cart).reduce((a, b) => a + b, 0);
+  const cartTotal = () => Object.entries(cart).reduce((s, [id, q]) => s + findProduct(id).price * q, 0);
+
+  // ---------- Navegación ----------
+  function showScreen(name) {
+    Object.values(screens).forEach(s => { s.classList.add('hidden'); s.classList.remove('fade-in'); });
+    const t = screens[name];
+    t.classList.remove('hidden');
+    void t.offsetWidth;
+    t.classList.add('fade-in');
+    t.scrollTop = 0;
+    activeScreen = name;
+  }
+
+  let toastTimer;
+  function showToast(msg, ms = 1600) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+  }
+
+  // ---------- Login ----------
+  $('btn-login').addEventListener('click', () => {
+    if (!$('email').value.trim() || !$('password').value.trim()) {
+      alert('Por favor ingresa tu correo institucional y tu contraseña.');
+      return;
+    }
+    showScreen('home');
+    startLiveStock();
+  });
+  $('btn-logout').addEventListener('click', () => {
+    cart = {}; currentBiz = null; updateBadge();
+    stopLiveStock();
+    showScreen('login');
+  });
+
+  // ---------- Home ----------
+  function renderBusinesses() {
+    const list = $('business-list');
+    list.innerHTML = '';
+    businesses.forEach(b => {
+      const el = document.createElement('div');
+      el.className = 'biz-card';
+      el.innerHTML = `
+        <div class="biz-icon">${b.icon}</div>
+        <div class="biz-info"><h3>${b.name}</h3><p>${b.desc}</p><span class="status">● ${b.status}</span></div>
+        <span class="chevron">›</span>`;
+      el.addEventListener('click', () => openMenu(b));
+      list.appendChild(el);
+    });
+  }
+
+  function openMenu(b) {
+    // El carrito pertenece a un solo negocio (la recolección es en un solo lugar)
+    if (currentBiz && currentBiz.id !== b.id && cartCount() > 0) {
+      cart = {}; updateBadge();
+      showToast('Carrito reiniciado: cambiaste de negocio');
+    }
+    currentBiz = b;
+    $('menu-title').textContent = b.name;
+    renderProducts();
+    showScreen('menu');
+  }
+  $('btn-back').addEventListener('click', () => showScreen('home'));
+
+  // ---------- Historia 1: inventario en vivo ----------
+  function renderProducts() {
+    if (!currentBiz) return;
+    const list = $('product-list');
+    list.innerHTML = '';
+    currentBiz.products.forEach(p => {
+      const left = available(p);
+      const soldOut = left <= 0;
+      const cls = soldOut ? 'out' : (left <= 2 ? 'low' : 'ok');
+      const label = soldOut ? 'Sin existencias' : `Disponibles: ${left}`;
+      const el = document.createElement('div');
+      el.className = 'product' + (soldOut ? ' soldout' : '');
+      el.innerHTML = `
+        <div class="product-emoji">${p.emoji}</div>
+        <div class="product-info">
+          <h4>${p.name}</h4>
+          <span class="price">$${p.price}</span><br>
+          <span class="stock ${cls}">${label}</span>
+        </div>
+        <button class="btn-add" data-id="${p.id}" ${soldOut ? 'disabled' : ''}>${soldOut ? 'Agotado' : '+ Agregar'}</button>`;
+      el.querySelector('.btn-add').addEventListener('click', e => addToCart(p, e.currentTarget));
+      list.appendChild(el);
+    });
+  }
+
+  function addToCart(p, btn) {
+    if (available(p) <= 0) return;
+    cart[p.id] = inCart(p.id) + 1;
+    updateBadge(true);
+    renderProducts();
+    // feedback visual en el botón recién tocado (si sigue habilitado)
+    const nb = document.querySelector(`.btn-add[data-id="${p.id}"]`);
+    if (nb && !nb.disabled) {
+      nb.classList.add('added'); nb.textContent = '✓ Añadido';
+      setTimeout(() => { nb.classList.remove('added'); if (!nb.disabled) nb.textContent = '+ Agregar'; }, 800);
+    }
+    showToast('Añadido al carrito');
+  }
+
+  function updateBadge(animate) {
+    const b = $('cart-count');
+    b.textContent = cartCount();
+    if (animate) { b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); }
+  }
+
+  // Simulación: otros estudiantes compran y el inventario baja solo
+  function startLiveStock() {
+    stopLiveStock();
+    liveTimer = setInterval(() => {
+      const pool = businesses.flatMap(b => b.products.map(p => ({ b, p }))).filter(x => available(x.p) > 0);
+      if (!pool.length) return;
+      const { b, p } = pool[Math.floor(Math.random() * pool.length)];
+      p.stock -= 1;
+      if (activeScreen === 'menu' && currentBiz && currentBiz.id === b.id) {
+        renderProducts();
+        showToast(available(p) <= 0 ? `¡Se agotó: ${p.name}!` : `Otro alumno pidió ${p.name}`, 1800);
+      } else if (activeScreen === 'cart') {
+        renderCart(); // por si alguien lo ve en el carrito
+      }
+    }, 9000);
+  }
+  function stopLiveStock() { clearInterval(liveTimer); liveTimer = null; }
+
+  // ---------- Carrito / Historia 2 (programar recolección) / Historia 3 (pago) ----------
+  $('btn-cart').addEventListener('click', () => { renderCart(); showScreen('cart'); });
+  $('btn-cart-back').addEventListener('click', () => { renderProducts(); showScreen('menu'); });
+
+  function renderCart() {
+    const box = $('cart-content');
+    const footer = $('checkout-footer');
+    const ids = Object.keys(cart).filter(id => cart[id] > 0);
+
+    if (!ids.length) {
+      box.innerHTML = `<div class="empty"><div class="big">🛒</div><p>Tu carrito está vacío.<br>Agrega algo delicioso del menú.</p></div>`;
+      footer.classList.add('hidden');
+      return;
+    }
+    footer.classList.remove('hidden');
+
+    const rows = ids.map(id => {
+      const p = findProduct(id), q = cart[id];
+      return `
+        <div class="cart-row">
+          <div class="emoji">${p.emoji}</div>
+          <div class="info"><strong>${p.name}</strong><span>$${p.price} c/u</span></div>
+          <div class="qty">
+            <button data-act="minus" data-id="${id}">−</button>
+            <b>${q}</b>
+            <button data-act="plus" data-id="${id}" ${available(p) <= 0 ? 'disabled' : ''}>+</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    const timeOptions = pickupTimes.map(t => `<option ${t === selectedTime ? 'selected' : ''}>${t}</option>`).join('');
+    const payHtml = payMethods.map(m => `
+      <div class="pay-option ${m.id === selectedPay ? 'selected' : ''}" data-pay="${m.id}">
+        <span class="ic">${m.icon}</span>
+        <span class="tx">${m.name}<small>${m.sub}</small></span>
+        <span class="dot"></span>
+      </div>`).join('');
+
+    box.innerHTML = `
+      <p class="section-title">${currentBiz ? currentBiz.name : 'Pedido'}</p>
+      <div class="card">${rows}</div>
+
+      <p class="section-title">Detalles de entrega</p>
+      <div class="card">
+        <label class="label" for="pickup-time">⏰ Hora de recolección</label>
+        <select id="pickup-time">${timeOptions}</select>
+      </div>
+
+      <p class="section-title">Método de pago</p>
+      <div class="card">${payHtml}</div>
+
+      <div class="card summary"><span>Total</span><span>$${cartTotal()}</span></div>`;
+
+    // eventos
+    box.querySelectorAll('.qty button').forEach(b => b.addEventListener('click', () => {
+      const id = b.dataset.id, p = findProduct(id);
+      if (b.dataset.act === 'plus') { if (available(p) > 0) cart[id]++; }
+      else { cart[id]--; if (cart[id] <= 0) delete cart[id]; }
+      updateBadge(true);
+      renderCart();
+    }));
+    $('pickup-time').addEventListener('change', e => { selectedTime = e.target.value; });
+    box.querySelectorAll('.pay-option').forEach(o => o.addEventListener('click', () => {
+      selectedPay = o.dataset.pay;
+      box.querySelectorAll('.pay-option').forEach(x => x.classList.toggle('selected', x === o));
+    }));
+    $('btn-pay').textContent = `Pagar en línea · $${cartTotal()}`;
+  }
+
+  $('btn-pay').addEventListener('click', () => {
+    if (!cartCount()) return;
+    const btn = $('btn-pay');
+    btn.disabled = true;
+    $('processing').classList.remove('hidden');
+
+    setTimeout(() => {
+      $('processing').classList.add('hidden');
+      btn.disabled = false;
+
+      const num = orderNumber++;
+      const msg = `Pago exitoso. Orden #${num} programada para recolección`;
+      const method = payMethods.find(m => m.id === selectedPay).name;
+      const total = cartTotal();
+      const items = cartCount();
+
+      // Se descuenta el inventario real
+      Object.entries(cart).forEach(([id, q]) => { findProduct(id).stock -= q; });
+      cart = {}; updateBadge();
+
+      $('success-msg').textContent = msg;
+      $('order-box').innerHTML = `
+        <div><span>Orden</span><b>#${num}</b></div>
+        <div><span>Negocio</span><b>${currentBiz.name}</b></div>
+        <div><span>Recolección</span><b>${selectedTime.split(' - ')[0]}</b></div>
+        <div><span>Artículos</span><b>${items}</b></div>
+        <div><span>Pago</span><b>${method}</b></div>
+        <div><span>Total</span><b>$${total}</b></div>`;
+      showScreen('success');
+      showToast(msg, 2600);
+    }, 1900);
+  });
+
+  $('btn-done').addEventListener('click', () => { showScreen('home'); });
+
+  // ---------- Init ----------
+  renderBusinesses();
+</script>
+</body>
+</html>
